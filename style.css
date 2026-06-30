@@ -594,3 +594,171 @@ ul { list-style: none; }
   .mc-header { border-radius: var(--r-lg); }
   .app-card  { padding: var(--sp-6) 40px; }
 }
+
+/* ── 인증 모달 오버레이 ── */
+.auth-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(28, 27, 31, 0.55);
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+}
+.auth-overlay.visible {
+  display: flex;
+}
+
+.auth-card {
+  background: var(--md-surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--el-3);
+  padding: var(--sp-6) 40px;
+  width: 100%;
+  max-width: 380px;
+  margin: var(--sp-4);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: var(--sp-5);
+}
+.auth-mc-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--sp-3);
+}
+.auth-title-text {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.8rem, 3vw, 1.1rem);
+  color: var(--md-primary);
+  text-shadow: 2px 2px 0 #EADDFF;
+  margin-bottom: var(--sp-2);
+}
+.auth-subtitle-text {
+  font-size: 0.82rem;
+  color: var(--md-on-surface-variant);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.auth-input {
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  border: 2px solid var(--md-outline-variant);
+  border-radius: var(--r-xl);
+  background: var(--md-surface-1);
+  font-size: 0.9rem;
+  color: var(--md-on-surface);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.auth-input:focus {
+  border-color: var(--md-primary);
+  box-shadow: 0 0 0 3px rgba(103,80,164,.15);
+}
+
+.auth-message {
+  font-size: 0.8rem;
+  min-height: 1.2em;
+  color: var(--md-error);
+  text-align: center;
+}
+
+.auth-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--md-primary);
+  color: var(--md-on-primary);
+  border: none;
+  border-radius: var(--r-xl);
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: var(--el-2);
+  transition: background .2s, box-shadow .2s;
+}
+.auth-btn-primary:hover { background: #7965AF; box-shadow: var(--el-3); }
+.auth-btn-primary .material-icons-round { font-size: 1.1rem; }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--md-outline);
+  font-size: 0.8rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--md-outline-variant);
+}
+
+.auth-btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  padding: var(--sp-3) var(--sp-4);
+  background: transparent;
+  color: var(--md-primary);
+  border: 2px solid var(--md-primary);
+  border-radius: var(--r-xl);
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background .2s;
+}
+.auth-btn-secondary:hover { background: var(--md-primary-container); }
+.auth-btn-secondary .material-icons-round { font-size: 1.1rem; }
+
+/* ── 유저 바 ── */
+.user-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--md-surface-1);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-4);
+}
+.user-icon {
+  color: var(--md-primary);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.user-email {
+  flex: 1;
+  font-size: 0.82rem;
+  color: var(--md-on-surface-variant);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.signout-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--r-full);
+  color: var(--md-on-surface-variant);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  flex-shrink: 0;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.signout-btn:hover {
+  color: var(--md-error);
+  border-color: var(--md-error);
+  background: var(--md-error-container);
+}
+.signout-btn .material-icons-round { font-size: 0.9rem; }

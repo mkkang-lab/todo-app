@@ -1,5 +1,5 @@
-const STORAGE_KEY  = 'todos';
-const GROUPS_KEY   = 'todo-groups';
+// ── Supabase 클라이언트 (URL/KEY는 config.js에서 주입) ──
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const PRIORITY_OPTS = [
   { value: 'high',   label: '높음' },
@@ -8,60 +8,48 @@ const PRIORITY_OPTS = [
 ];
 
 // ── 마인크래프트 캐릭터 아이콘 (픽셀 아트 SVG) ──
-
 function mcIcon(priority, size = 22) {
   const s = size;
   const icons = {
-    // 크리퍼 – 높음 우선순위 (위험/긴급)
     high: `<svg width="${s}" height="${s}" viewBox="0 0 16 16"
             xmlns="http://www.w3.org/2000/svg"
             style="image-rendering:pixelated;display:block"
             title="높음 - Creeper">
       <rect width="16" height="16" fill="#4CAF50"/>
       <rect x="0" y="0" width="16" height="2" fill="#388E3C"/>
-      <!-- 눈 -->
       <rect x="1" y="4" width="5" height="5" fill="#1A1A1A"/>
       <rect x="10" y="4" width="5" height="5" fill="#1A1A1A"/>
-      <!-- 찡그린 입 -->
       <rect x="5" y="10" width="2" height="5" fill="#1A1A1A"/>
       <rect x="9" y="10" width="2" height="5" fill="#1A1A1A"/>
       <rect x="6" y="9" width="4" height="2" fill="#1A1A1A"/>
       <rect x="4" y="11" width="8" height="2" fill="#1A1A1A"/>
     </svg>`,
 
-    // 스티브 – 보통 우선순위
     medium: `<svg width="${s}" height="${s}" viewBox="0 0 16 16"
               xmlns="http://www.w3.org/2000/svg"
               style="image-rendering:pixelated;display:block"
               title="보통 - Steve">
       <rect width="16" height="16" fill="#C8996B"/>
-      <!-- 머리카락 -->
       <rect x="0" y="0" width="16" height="5" fill="#4A2C0A"/>
       <rect x="0" y="5" width="3"  height="4" fill="#4A2C0A"/>
-      <!-- 눈 -->
       <rect x="3" y="5" width="4" height="4" fill="#fff"/>
       <rect x="4" y="6" width="2" height="2" fill="#222"/>
       <rect x="9" y="5" width="4" height="4" fill="#fff"/>
       <rect x="10" y="6" width="2" height="2" fill="#222"/>
-      <!-- 입 -->
       <rect x="4" y="11" width="8" height="3" fill="#4A2C0A"/>
       <rect x="4" y="11" width="2" height="1" fill="#C8996B"/>
       <rect x="10" y="11" width="2" height="1" fill="#C8996B"/>
     </svg>`,
 
-    // 돼지 – 낮음 우선순위 (평화로움)
     low: `<svg width="${s}" height="${s}" viewBox="0 0 16 16"
            xmlns="http://www.w3.org/2000/svg"
            style="image-rendering:pixelated;display:block"
            title="낮음 - Pig">
       <rect width="16" height="16" fill="#F48B8B"/>
-      <!-- 귀 -->
       <rect x="0" y="0" width="4" height="4" fill="#E57373"/>
       <rect x="12" y="0" width="4" height="4" fill="#E57373"/>
-      <!-- 눈 -->
       <rect x="3" y="4" width="3" height="3" fill="#1A1A1A"/>
       <rect x="10" y="4" width="3" height="3" fill="#1A1A1A"/>
-      <!-- 콧구멍 -->
       <rect x="4" y="9" width="8" height="5" fill="#E57373"/>
       <rect x="5" y="10" width="2" height="2" fill="#1A1A1A"/>
       <rect x="9" y="10" width="2" height="2" fill="#1A1A1A"/>
@@ -71,99 +59,245 @@ function mcIcon(priority, size = 22) {
 }
 
 // ── 상태 ──
+let currentUser = null;
 let todos  = [];
 let groups = [];
 let activeFilter         = 'all';
 let activePriorityFilter = 'all';
 
-// 드래그 상태
+// 드래그 상태 (ID는 UUID 문자열)
 let dragId         = null;
 let dropTargetId   = null;
-let dropTargetType = null; // 'todo-standalone' | 'todo-in-group' | 'group-header'
-let dropMode       = null; // 'before' | 'after' | 'group' | 'join'
+let dropTargetType = null;
+let dropMode       = null;
 
-// ── 영속성 ──
+// ── 인증 ──
 
-function loadTodos()  { try { todos  = JSON.parse(localStorage.getItem(STORAGE_KEY))  || []; } catch { todos  = []; } }
-function saveTodos()  { localStorage.setItem(STORAGE_KEY,  JSON.stringify(todos));  }
-function loadGroups() { try { groups = JSON.parse(localStorage.getItem(GROUPS_KEY)) || []; } catch { groups = []; } }
-function saveGroups() { localStorage.setItem(GROUPS_KEY, JSON.stringify(groups)); }
+function showAuthModal() {
+  document.getElementById('auth-modal').classList.add('visible');
+}
 
-// ── Todo 변경 ──
+function hideAuthModal() {
+  document.getElementById('auth-modal').classList.remove('visible');
+}
 
-function addTodo(text, priority) {
-  const trimmed = text.trim();
-  if (!trimmed) return;
-  todos.push({ id: Date.now(), text: trimmed, completed: false, priority, groupId: null, createdAt: new Date().toISOString() });
-  saveTodos();
+function updateUserBar() {
+  const el = document.getElementById('user-email');
+  if (el && currentUser) el.textContent = currentUser.email;
+}
+
+async function handleSignIn() {
+  const email    = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl    = document.getElementById('auth-error');
+  errEl.style.color = 'var(--md-error)';
+  errEl.textContent = '';
+
+  if (!email || !password) {
+    errEl.textContent = '이메일과 비밀번호를 입력해주세요.';
+    return;
+  }
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+  if (error) { errEl.textContent = error.message; return; }
+
+  currentUser = data.user;
+  updateUserBar();
+  hideAuthModal();
+  await loadAll();
   render();
 }
 
-function toggleTodo(id) {
-  const t = todos.find(t => t.id === id);
-  if (t) { t.completed = !t.completed; saveTodos(); render(); }
+async function handleSignUp() {
+  const email    = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl    = document.getElementById('auth-error');
+  errEl.style.color = 'var(--md-error)';
+  errEl.textContent = '';
+
+  if (!email || !password) {
+    errEl.textContent = '이메일과 비밀번호를 입력해주세요.';
+    return;
+  }
+  if (password.length < 6) {
+    errEl.textContent = '비밀번호는 6자 이상이어야 합니다.';
+    return;
+  }
+
+  const { data, error } = await db.auth.signUp({ email, password });
+  if (error) { errEl.textContent = error.message; return; }
+
+  if (data.user && !data.session) {
+    errEl.style.color = '#2E7D32';
+    errEl.textContent = '이메일을 확인하여 인증을 완료하세요.';
+    return;
+  }
+
+  currentUser = data.user;
+  updateUserBar();
+  hideAuthModal();
+  await loadAll();
+  render();
 }
 
-function deleteTodo(id) {
+async function handleSignOut() {
+  await db.auth.signOut();
+  currentUser = null;
+  todos = [];
+  groups = [];
+  render();
+  showAuthModal();
+}
+
+// ── 데이터 로드 ──
+
+async function loadAll() {
+  const uid = currentUser.id;
+  const [{ data: groupData, error: ge }, { data: todoData, error: te }] = await Promise.all([
+    db.from('todo_groups').select('*').eq('user_id', uid).order('position'),
+    db.from('todos').select('*').eq('user_id', uid).order('position'),
+  ]);
+
+  if (ge || te) { console.error(ge || te); return; }
+
+  groups = (groupData || []).map(g => ({
+    id:        g.id,
+    name:      g.name,
+    collapsed: g.collapsed,
+  }));
+
+  todos = (todoData || []).map(t => ({
+    id:        t.id,
+    text:      t.text,
+    completed: t.completed,
+    priority:  t.priority,
+    groupId:   t.group_id,
+    createdAt: t.created_at,
+  }));
+}
+
+async function syncTodoPositions() {
+  await Promise.all(
+    todos.map((t, i) => db.from('todos').update({ position: i }).eq('id', t.id))
+  );
+}
+
+// ── Todo 변경 ──
+
+async function addTodo(text, priority) {
+  const trimmed = text.trim();
+  if (!trimmed) return;
+
+  const { data, error } = await db.from('todos').insert({
+    user_id:   currentUser.id,
+    text:      trimmed,
+    completed: false,
+    priority,
+    group_id:  null,
+    position:  todos.length,
+  }).select().single();
+
+  if (error) { console.error(error); return; }
+
+  todos.push({
+    id:        data.id,
+    text:      data.text,
+    completed: data.completed,
+    priority:  data.priority,
+    groupId:   data.group_id,
+    createdAt: data.created_at,
+  });
+  render();
+}
+
+async function toggleTodo(id) {
   const t = todos.find(t => t.id === id);
+  if (!t) return;
+  t.completed = !t.completed;
+  render();
+  await db.from('todos').update({ completed: t.completed }).eq('id', id);
+}
+
+async function deleteTodo(id) {
+  const t   = todos.find(t => t.id === id);
   const gid = t?.groupId;
   todos = todos.filter(t => t.id !== id);
-  if (gid) cleanupGroup(gid);
-  saveTodos(); saveGroups(); render();
+  render();
+  await db.from('todos').delete().eq('id', id);
+  if (gid) await cleanupGroup(gid);
 }
 
-function changePriority(id, priority) {
+async function changePriority(id, priority) {
   const t = todos.find(t => t.id === id);
-  if (t) { t.priority = priority; saveTodos(); render(); }
+  if (!t) return;
+  t.priority = priority;
+  render();
+  await db.from('todos').update({ priority }).eq('id', id);
 }
 
-function clearCompleted() {
-  const gids = [...new Set(todos.filter(t => t.completed && t.groupId).map(t => t.groupId))];
+async function clearCompleted() {
+  const completed = todos.filter(t => t.completed);
+  const gids = [...new Set(completed.filter(t => t.groupId).map(t => t.groupId))];
+  const ids   = completed.map(t => t.id);
   todos = todos.filter(t => !t.completed);
-  gids.forEach(cleanupGroup);
-  saveTodos(); saveGroups(); render();
+  render();
+  if (ids.length) await db.from('todos').delete().in('id', ids);
+  for (const gid of gids) await cleanupGroup(gid);
 }
 
 // ── 그룹 변경 ──
 
-// 그룹 멤버가 1명 이하면 자동 해산
-function cleanupGroup(groupId) {
+async function cleanupGroup(groupId) {
   const members = todos.filter(t => t.groupId === groupId);
   if (members.length < 2) {
     members.forEach(t => { t.groupId = null; });
     groups = groups.filter(g => g.id !== groupId);
+    if (members.length > 0) {
+      await db.from('todos').update({ group_id: null }).in('id', members.map(m => m.id));
+    }
+    await db.from('todo_groups').delete().eq('id', groupId);
   }
 }
 
-function ungroupTodo(todoId) {
+async function ungroupTodo(todoId) {
   const t = todos.find(t => t.id === todoId);
   if (!t?.groupId) return;
   const gid = t.groupId;
   t.groupId = null;
-  cleanupGroup(gid);
-  saveTodos(); saveGroups(); render();
+  await db.from('todos').update({ group_id: null }).eq('id', todoId);
+  await cleanupGroup(gid);
+  render();
 }
 
-function disbandGroup(groupId) {
+async function disbandGroup(groupId) {
+  const memberIds = todos.filter(t => t.groupId === groupId).map(t => t.id);
   todos.forEach(t => { if (t.groupId === groupId) t.groupId = null; });
   groups = groups.filter(g => g.id !== groupId);
-  saveTodos(); saveGroups(); render();
+  render();
+  if (memberIds.length) await db.from('todos').update({ group_id: null }).in('id', memberIds);
+  await db.from('todo_groups').delete().eq('id', groupId);
 }
 
-function renameGroup(groupId, name) {
+async function renameGroup(groupId, name) {
   const g = groups.find(g => g.id === groupId);
-  if (g) { g.name = name; saveGroups(); }
+  if (g) {
+    g.name = name;
+    await db.from('todo_groups').update({ name }).eq('id', groupId);
+  }
 }
 
-function toggleGroupCollapse(groupId) {
+async function toggleGroupCollapse(groupId) {
   const g = groups.find(g => g.id === groupId);
-  if (g) { g.collapsed = !g.collapsed; saveGroups(); render(); }
+  if (g) {
+    g.collapsed = !g.collapsed;
+    render();
+    await db.from('todo_groups').update({ collapsed: g.collapsed }).eq('id', groupId);
+  }
 }
 
 // ── 드래그로 그룹 생성/합류 ──
 
-// 두 standalone todo를 그룹으로 묶거나 기존 그룹에 추가
-function mergeTodos(fromId, toId) {
+async function mergeTodos(fromId, toId) {
   const from = todos.find(t => t.id === fromId);
   const to   = todos.find(t => t.id === toId);
   if (!from || !to || from.id === to.id) return;
@@ -177,40 +311,56 @@ function mergeTodos(fromId, toId) {
     targetGid = from.groupId;
     to.groupId = targetGid;
   } else {
-    targetGid = Date.now();
-    groups.push({ id: targetGid, name: `그룹 ${groups.length + 1}`, collapsed: false });
+    const { data: newGroup, error } = await db.from('todo_groups').insert({
+      user_id:   currentUser.id,
+      name:      `그룹 ${groups.length + 1}`,
+      collapsed: false,
+      position:  groups.length,
+    }).select().single();
+
+    if (error) { console.error(error); return; }
+
+    targetGid = newGroup.id;
+    groups.push({ id: targetGid, name: newGroup.name, collapsed: false });
     to.groupId = targetGid;
   }
 
   from.groupId = targetGid;
-  if (oldFromGid && oldFromGid !== targetGid) cleanupGroup(oldFromGid);
+  if (oldFromGid && oldFromGid !== targetGid) await cleanupGroup(oldFromGid);
 
-  // from을 to 바로 뒤로 이동 (배열에서 그룹 멤버가 인접하도록)
   const fromIdx = todos.indexOf(from);
   todos.splice(fromIdx, 1);
   todos.splice(todos.indexOf(to) + 1, 0, from);
 
-  saveTodos(); saveGroups(); render();
+  render();
+
+  await Promise.all([
+    db.from('todos').update({ group_id: targetGid }).eq('id', from.id),
+    db.from('todos').update({ group_id: targetGid }).eq('id', to.id),
+  ]);
+  await syncTodoPositions();
 }
 
-// 기존 그룹에 todo 추가 (그룹 헤더에 드롭 시)
-function joinGroup(todoId, groupId) {
+async function joinGroup(todoId, groupId) {
   const t = todos.find(t => t.id === todoId);
   if (!t) return;
   const oldGid = t.groupId;
   t.groupId = groupId;
-  if (oldGid && oldGid !== groupId) cleanupGroup(oldGid);
 
-  // 그룹 마지막 멤버 뒤로 이동
   const members = todos.filter(m => m.groupId === groupId && m.id !== todoId);
   if (members.length > 0) {
     const last = members[members.length - 1];
-    const fi = todos.indexOf(t);
+    const fi   = todos.indexOf(t);
     todos.splice(fi, 1);
     todos.splice(todos.indexOf(last) + 1, 0, t);
   }
 
-  saveTodos(); saveGroups(); render();
+  if (oldGid && oldGid !== groupId) await cleanupGroup(oldGid);
+
+  render();
+
+  await db.from('todos').update({ group_id: groupId }).eq('id', todoId);
+  await syncTodoPositions();
 }
 
 // ── 표시 로우 계산 ──
@@ -223,7 +373,6 @@ function getSortedFiltered() {
   return [...list].sort((a, b) => (a.completed === b.completed ? 0 : a.completed ? 1 : -1));
 }
 
-// todos 배열 순서 기준으로 display rows 구성 (그룹은 첫 멤버 위치에)
 function getDisplayRows(filtered) {
   const rows = [];
   const seenGids = new Set();
@@ -234,7 +383,7 @@ function getDisplayRows(filtered) {
     } else if (!seenGids.has(todo.groupId)) {
       seenGids.add(todo.groupId);
       const group = groups.find(g => g.id === todo.groupId);
-      if (!group) { rows.push({ type: 'todo', todo }); continue; } // orphan
+      if (!group) { rows.push({ type: 'todo', todo }); continue; }
       const members = filtered.filter(t => t.groupId === todo.groupId);
       rows.push({ type: 'group', group, members });
     }
@@ -271,7 +420,6 @@ function createTodoEl(todo, inGroup = false) {
   checkbox.className = 'todo-checkbox';
   checkbox.checked = todo.completed;
 
-  // 마인크래프트 우선순위 아이콘
   const iconEl = document.createElement('span');
   iconEl.className = 'mc-priority-icon';
   iconEl.innerHTML = mcIcon(todo.priority, 22);
@@ -307,7 +455,6 @@ function createGroupEl(group, members) {
   li.className = `group-row${group.collapsed ? ' collapsed' : ''}`;
   li.dataset.groupId = group.id;
 
-  // 헤더
   const header = document.createElement('div');
   header.className = 'group-header';
 
@@ -329,7 +476,6 @@ function createGroupEl(group, members) {
     nameEl.textContent = name;
     renameGroup(group.id, name);
   });
-  // 이름 편집 중 드래그 방지
   nameEl.addEventListener('mousedown', e => e.stopPropagation());
 
   const countEl = document.createElement('span');
@@ -346,7 +492,6 @@ function createGroupEl(group, members) {
   header.appendChild(countEl);
   header.appendChild(disbandBtn);
 
-  // 바디
   const body = document.createElement('ul');
   body.className = 'group-body';
   members.forEach(todo => body.appendChild(createTodoEl(todo, true)));
@@ -392,13 +537,12 @@ function clearDragClasses() {
   });
 }
 
-// zones: 'two' → 상/하, 'three' → 상/그룹/하
 function calcDropMode(e, el, zones) {
   const { top, height } = el.getBoundingClientRect();
   const ratio = (e.clientY - top) / height;
-  if (zones === 'two')   return ratio < 0.5 ? 'before' : 'after';
-  if (ratio < 0.3)       return 'before';
-  if (ratio > 0.7)       return 'after';
+  if (zones === 'two')  return ratio < 0.5 ? 'before' : 'after';
+  if (ratio < 0.3)      return 'before';
+  if (ratio > 0.7)      return 'after';
   return 'group';
 }
 
@@ -408,7 +552,7 @@ function initDragDrop() {
   list.addEventListener('dragstart', e => {
     const item = e.target.closest('.todo-item');
     if (!item) return;
-    dragId = Number(item.dataset.id);
+    dragId = item.dataset.id;
     e.dataTransfer.effectAllowed = 'move';
     setTimeout(() => item.classList.add('dragging'), 0);
   });
@@ -429,27 +573,25 @@ function initDragDrop() {
     const targetTodo   = e.target.closest('.todo-item');
     const targetHeader = !targetTodo ? e.target.closest('.group-header') : null;
 
-    if (targetTodo && Number(targetTodo.dataset.id) !== dragId) {
-      // ── todo 위에 드롭 ──
-      dropTargetId   = Number(targetTodo.dataset.id);
+    if (targetTodo && targetTodo.dataset.id !== dragId) {
+      dropTargetId   = targetTodo.dataset.id;
       const inGroup  = !!targetTodo.closest('.group-body');
       dropTargetType = inGroup ? 'todo-in-group' : 'todo-standalone';
       dropMode       = calcDropMode(e, targetTodo, inGroup ? 'two' : 'three');
 
-      if (dropMode === 'before') targetTodo.classList.add('drag-over-top');
-      else if (dropMode === 'after') targetTodo.classList.add('drag-over-bottom');
-      else targetTodo.classList.add('drop-group-target'); // 'group'
+      if (dropMode === 'before')      targetTodo.classList.add('drag-over-top');
+      else if (dropMode === 'after')  targetTodo.classList.add('drag-over-bottom');
+      else                            targetTodo.classList.add('drop-group-target');
 
     } else if (targetHeader) {
-      // ── 그룹 헤더 위에 드롭 ──
       const groupRow = targetHeader.closest('.group-row');
-      dropTargetId   = Number(groupRow.dataset.groupId);
+      dropTargetId   = groupRow.dataset.groupId;
       dropTargetType = 'group-header';
       dropMode       = calcDropMode(e, groupRow, 'three');
 
-      if (dropMode === 'before') groupRow.classList.add('drag-over-top');
-      else if (dropMode === 'after') groupRow.classList.add('drag-over-bottom');
-      else targetHeader.classList.add('drop-group-target'); // 'group' = join
+      if (dropMode === 'before')      groupRow.classList.add('drag-over-top');
+      else if (dropMode === 'after')  groupRow.classList.add('drag-over-bottom');
+      else                            targetHeader.classList.add('drop-group-target');
 
     } else {
       dropTargetId = null; dropTargetType = null; dropMode = null;
@@ -463,7 +605,7 @@ function initDragDrop() {
     }
   });
 
-  list.addEventListener('drop', e => {
+  list.addEventListener('drop', async e => {
     e.preventDefault();
     if (!dragId || !dropTargetId || !dropMode) { clearDragClasses(); return; }
 
@@ -471,25 +613,20 @@ function initDragDrop() {
     if (!fromTodo) { clearDragClasses(); return; }
 
     if (dropMode === 'group' && dropTargetType === 'todo-standalone') {
-      // 두 독립 항목 → 그룹 생성 또는 기존 그룹에 합류
-      mergeTodos(dragId, dropTargetId);
+      await mergeTodos(dragId, dropTargetId);
 
     } else if (dropMode === 'group' && dropTargetType === 'group-header') {
-      // 그룹 헤더 가운데에 드롭 → 해당 그룹에 추가
-      joinGroup(dragId, dropTargetId);
+      await joinGroup(dragId, dropTargetId);
 
     } else {
-      // before / after → 재정렬
       let oldGid = null;
       const isOutside = (dropTargetType === 'todo-standalone' || dropTargetType === 'group-header');
 
-      // 그룹 외부에 드롭하면 자동 그룹 해제
       if (fromTodo.groupId && isOutside) {
         oldGid = fromTodo.groupId;
         fromTodo.groupId = null;
       }
 
-      // 그룹 내부 → 다른 그룹으로 이동
       if (dropTargetType === 'todo-in-group') {
         const targetTodo = todos.find(t => t.id === dropTargetId);
         if (targetTodo?.groupId && targetTodo.groupId !== fromTodo.groupId) {
@@ -498,12 +635,10 @@ function initDragDrop() {
         }
       }
 
-      // 배열에서 꺼낸 뒤 삽입
       const fromIdx = todos.indexOf(fromTodo);
       todos.splice(fromIdx, 1);
 
       if (dropTargetType === 'group-header') {
-        // 그룹 전체의 앞/뒤
         const members = todos.filter(t => t.groupId === dropTargetId);
         const indices = members.map(m => todos.indexOf(m));
         const pos = dropMode === 'before'
@@ -515,8 +650,11 @@ function initDragDrop() {
         todos.splice(dropMode === 'before' ? toIdx : toIdx + 1, 0, fromTodo);
       }
 
-      if (oldGid) cleanupGroup(oldGid);
-      saveTodos(); saveGroups(); render();
+      render();
+
+      if (oldGid) await cleanupGroup(oldGid);
+      await db.from('todos').update({ group_id: fromTodo.groupId ?? null }).eq('id', fromTodo.id);
+      await syncTodoPositions();
     }
 
     clearDragClasses();
@@ -543,17 +681,13 @@ function initPrioritySelect() {
     });
   }
 
-  // 메뉴 항목 생성
   PRIORITY_OPTS.forEach(({ value, label }) => {
     const li = document.createElement('li');
     li.className = 'priority-select-option';
     li.role = 'option';
     li.dataset.value = value;
     li.innerHTML = `<span style="display:flex">${mcIcon(value, 20)}</span><span>${label}</span>`;
-    li.addEventListener('click', () => {
-      setSelected(value);
-      closeMenu();
-    });
+    li.addEventListener('click', () => { setSelected(value); closeMenu(); });
     menu.appendChild(li);
   });
 
@@ -571,13 +705,11 @@ function initPrioritySelect() {
   setSelected('medium');
 }
 
-initPrioritySelect();
-
 // ── 이벤트 바인딩 ──
 
-document.getElementById('add-btn').addEventListener('click', () => {
+document.getElementById('add-btn').addEventListener('click', async () => {
   const input = document.getElementById('todo-input');
-  addTodo(input.value, document.getElementById('priority-select').value);
+  await addTodo(input.value, document.getElementById('priority-select').value);
   input.value = '';
   input.focus();
 });
@@ -586,24 +718,24 @@ document.getElementById('todo-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('add-btn').click();
 });
 
-document.getElementById('todo-list').addEventListener('change', e => {
+document.getElementById('todo-list').addEventListener('change', async e => {
   const item = e.target.closest('.todo-item');
   if (!item) return;
-  const id = Number(item.dataset.id);
-  if (e.target.classList.contains('todo-checkbox'))   toggleTodo(id);
-  if (e.target.classList.contains('priority-change')) changePriority(id, e.target.value);
+  const id = item.dataset.id;
+  if (e.target.classList.contains('todo-checkbox'))   await toggleTodo(id);
+  if (e.target.classList.contains('priority-change')) await changePriority(id, e.target.value);
 });
 
-document.getElementById('todo-list').addEventListener('click', e => {
-  const delBtn     = e.target.closest('.delete-btn');
-  const ugBtn      = e.target.closest('.ungroup-btn');
-  const disbandBtn = e.target.closest('.group-disband-btn');
+document.getElementById('todo-list').addEventListener('click', async e => {
+  const delBtn      = e.target.closest('.delete-btn');
+  const ugBtn       = e.target.closest('.ungroup-btn');
+  const disbandBtn  = e.target.closest('.group-disband-btn');
   const collapseBtn = e.target.closest('.group-collapse-btn');
 
-  if (delBtn)      deleteTodo(Number(delBtn.closest('.todo-item').dataset.id));
-  if (ugBtn)       ungroupTodo(Number(ugBtn.closest('.todo-item').dataset.id));
-  if (disbandBtn)  disbandGroup(Number(disbandBtn.dataset.groupId));
-  if (collapseBtn) toggleGroupCollapse(Number(collapseBtn.dataset.groupId));
+  if (delBtn)      await deleteTodo(delBtn.closest('.todo-item').dataset.id);
+  if (ugBtn)       await ungroupTodo(ugBtn.closest('.todo-item').dataset.id);
+  if (disbandBtn)  await disbandGroup(disbandBtn.dataset.groupId);
+  if (collapseBtn) await toggleGroupCollapse(collapseBtn.dataset.groupId);
 });
 
 document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -624,10 +756,36 @@ document.querySelectorAll('.priority-filter-btn').forEach(btn => {
   });
 });
 
-document.getElementById('clear-completed-btn').addEventListener('click', clearCompleted);
+document.getElementById('clear-completed-btn').addEventListener('click', async () => {
+  await clearCompleted();
+});
+
+// 인증 이벤트
+document.getElementById('signin-btn').addEventListener('click', handleSignIn);
+document.getElementById('signup-btn').addEventListener('click', handleSignUp);
+document.getElementById('signout-btn').addEventListener('click', handleSignOut);
+
+document.getElementById('auth-email').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('auth-password').focus();
+});
+document.getElementById('auth-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleSignIn();
+});
 
 // ── 초기화 ──
-loadTodos();
-loadGroups();
-render();
+
+initPrioritySelect();
 initDragDrop();
+
+(async () => {
+  const { data: { session } } = await db.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
+    updateUserBar();
+    hideAuthModal();
+    await loadAll();
+    render();
+  } else {
+    showAuthModal();
+  }
+})();
