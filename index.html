@@ -164,11 +164,16 @@
                  placeholder="할 일을 입력하세요..." autocomplete="off" />
         </div>
         <div class="input-row2">
-          <select id="priority-select" class="md-select">
-            <option value="high">높음</option>
-            <option value="medium" selected>보통</option>
-            <option value="low">낮음</option>
-          </select>
+          <div class="priority-select-wrap" id="priority-select-wrap">
+            <button type="button" class="priority-select-btn" id="priority-select-btn"
+                    aria-haspopup="listbox" aria-expanded="false">
+              <span class="priority-select-icon" id="priority-select-icon"></span>
+              <span class="priority-select-label" id="priority-select-label">보통</span>
+              <span class="material-icons-round priority-select-arrow">expand_more</span>
+            </button>
+            <ul class="priority-select-menu" id="priority-select-menu" role="listbox"></ul>
+            <input type="hidden" id="priority-select" value="medium">
+          </div>
           <button id="add-btn" class="md-fab-btn">
             <span class="material-icons-round">add_task</span>
             <span>추가</span>

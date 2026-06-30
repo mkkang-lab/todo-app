@@ -524,6 +524,55 @@ function initDragDrop() {
   });
 }
 
+// ── 커스텀 우선순위 드롭다운 ──
+
+function initPrioritySelect() {
+  const hiddenInput = document.getElementById('priority-select');
+  const btn         = document.getElementById('priority-select-btn');
+  const iconEl      = document.getElementById('priority-select-icon');
+  const labelEl     = document.getElementById('priority-select-label');
+  const menu        = document.getElementById('priority-select-menu');
+
+  function setSelected(value) {
+    const opt = PRIORITY_OPTS.find(o => o.value === value) ?? PRIORITY_OPTS[1];
+    hiddenInput.value = opt.value;
+    iconEl.innerHTML  = mcIcon(opt.value, 20);
+    labelEl.textContent = opt.label;
+    menu.querySelectorAll('.priority-select-option').forEach(li => {
+      li.classList.toggle('selected', li.dataset.value === opt.value);
+    });
+  }
+
+  // 메뉴 항목 생성
+  PRIORITY_OPTS.forEach(({ value, label }) => {
+    const li = document.createElement('li');
+    li.className = 'priority-select-option';
+    li.role = 'option';
+    li.dataset.value = value;
+    li.innerHTML = `<span style="display:flex">${mcIcon(value, 20)}</span><span>${label}</span>`;
+    li.addEventListener('click', () => {
+      setSelected(value);
+      closeMenu();
+    });
+    menu.appendChild(li);
+  });
+
+  function openMenu()  { menu.classList.add('open');    btn.setAttribute('aria-expanded', 'true');  }
+  function closeMenu() { menu.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    menu.classList.contains('open') ? closeMenu() : openMenu();
+  });
+
+  document.addEventListener('click', closeMenu);
+  menu.addEventListener('click', e => e.stopPropagation());
+
+  setSelected('medium');
+}
+
+initPrioritySelect();
+
 // ── 이벤트 바인딩 ──
 
 document.getElementById('add-btn').addEventListener('click', () => {
