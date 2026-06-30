@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo List</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+
+    <!-- ── Minecraft 헤더 씬 ── -->
+    <header class="mc-header" aria-hidden="true">
+      <svg class="mc-scene" viewBox="0 0 360 90"
+           xmlns="http://www.w3.org/2000/svg"
+           style="image-rendering:pixelated">
+
+        <!-- 하늘 -->
+        <rect width="360" height="90" fill="#87CEEB"/>
+        <!-- 구름 -->
+        <rect x="18"  y="7"  width="36" height="8" fill="#fff" opacity=".85"/>
+        <rect x="14"  y="11" width="44" height="8" fill="#fff" opacity=".85"/>
+        <rect x="200" y="9"  width="28" height="6" fill="#fff" opacity=".85"/>
+        <rect x="196" y="13" width="36" height="6" fill="#fff" opacity=".85"/>
+        <rect x="295" y="5"  width="22" height="6" fill="#fff" opacity=".7"/>
+        <rect x="291" y="9"  width="30" height="6" fill="#fff" opacity=".7"/>
+
+        <!-- ══ STEVE (center x≈52) ══ -->
+        <!-- 머리 (skin) -->
+        <rect x="44" y="6"  width="16" height="16" fill="#C8996B"/>
+        <!-- 머리카락 -->
+        <rect x="44" y="6"  width="16" height="6"  fill="#4A2C0A"/>
+        <rect x="44" y="12" width="4"  height="4"  fill="#4A2C0A"/>
+        <!-- 눈 흰자 -->
+        <rect x="48" y="12" width="4"  height="4"  fill="#fff"/>
+        <rect x="56" y="12" width="4"  height="4"  fill="#fff"/>
+        <!-- 눈동자 -->
+        <rect x="49" y="13" width="2"  height="2"  fill="#222"/>
+        <rect x="57" y="13" width="2"  height="2"  fill="#222"/>
+        <!-- 코·입 -->
+        <rect x="50" y="18" width="4"  height="2"  fill="#A0754E"/>
+        <rect x="48" y="20" width="8"  height="1"  fill="#4A2C0A"/>
+        <!-- 몸통 (파란 셔츠) -->
+        <rect x="45" y="22" width="14" height="12" fill="#3B6FBE"/>
+        <rect x="47" y="25" width="10" height="2"  fill="#2C5FA8"/>
+        <!-- 팔 -->
+        <rect x="41" y="22" width="4"  height="10" fill="#C8996B"/>
+        <rect x="59" y="22" width="4"  height="10" fill="#C8996B"/>
+        <!-- 하의 -->
+        <rect x="45" y="34" width="6"  height="10" fill="#2C4A8C"/>
+        <rect x="53" y="34" width="6"  height="10" fill="#2C4A8C"/>
+        <!-- 벨트 -->
+        <rect x="45" y="34" width="14" height="2"  fill="#1E3670"/>
+        <!-- 부츠 -->
+        <rect x="45" y="44" width="6"  height="4"  fill="#3C2410"/>
+        <rect x="53" y="44" width="6"  height="4"  fill="#3C2410"/>
+
+        <!-- 이름표 -->
+        <rect x="38" y="2" width="28" height="4" fill="#000" opacity=".35" rx="1"/>
+        <text x="52" y="5.5" text-anchor="middle" fill="#fff" font-size="3"
+              font-family="monospace" font-weight="bold">Steve</text>
+
+        <!-- ══ CREEPER (center x≈180) ══ -->
+        <!-- 머리 -->
+        <rect x="172" y="6"  width="16" height="16" fill="#4CAF50"/>
+        <rect x="172" y="6"  width="16" height="2"  fill="#43A047"/>
+        <!-- 눈 -->
+        <rect x="173" y="10" width="5"  height="5"  fill="#1A1A1A"/>
+        <rect x="182" y="10" width="5"  height="5"  fill="#1A1A1A"/>
+        <!-- 찡그린 입 -->
+        <rect x="177" y="16" width="2"  height="4"  fill="#1A1A1A"/>
+        <rect x="181" y="16" width="2"  height="4"  fill="#1A1A1A"/>
+        <rect x="178" y="15" width="4"  height="2"  fill="#1A1A1A"/>
+        <rect x="175" y="17" width="10" height="2"  fill="#1A1A1A"/>
+        <!-- 몸통 -->
+        <rect x="175" y="22" width="10" height="12" fill="#4CAF50"/>
+        <rect x="177" y="26" width="2"  height="4"  fill="#43A047"/>
+        <rect x="181" y="26" width="2"  height="4"  fill="#43A047"/>
+        <!-- 다리 -->
+        <rect x="173" y="34" width="5"  height="10" fill="#388E3C"/>
+        <rect x="182" y="34" width="5"  height="10" fill="#388E3C"/>
+        <!-- 발 -->
+        <rect x="173" y="44" width="5"  height="4"  fill="#2E7D32"/>
+        <rect x="182" y="44" width="5"  height="4"  fill="#2E7D32"/>
+
+        <!-- 이름표 -->
+        <rect x="164" y="2" width="32" height="4" fill="#000" opacity=".35" rx="1"/>
+        <text x="180" y="5.5" text-anchor="middle" fill="#fff" font-size="3"
+              font-family="monospace" font-weight="bold">Creeper</text>
+
+        <!-- ══ ALEX (center x≈308) ══ -->
+        <!-- 머리 -->
+        <rect x="300" y="6"  width="16" height="16" fill="#C8996B"/>
+        <!-- 오렌지 머리카락 -->
+        <rect x="300" y="6"  width="16" height="5"  fill="#C86430"/>
+        <rect x="300" y="11" width="2"  height="7"  fill="#C86430"/>
+        <rect x="314" y="6"  width="2"  height="12" fill="#C86430"/>
+        <!-- 눈 -->
+        <rect x="303" y="12" width="4"  height="3"  fill="#fff"/>
+        <rect x="304" y="13" width="2"  height="2"  fill="#222"/>
+        <rect x="309" y="12" width="4"  height="3"  fill="#fff"/>
+        <rect x="310" y="13" width="2"  height="2"  fill="#222"/>
+        <!-- 입 -->
+        <rect x="304" y="19" width="8"  height="2"  fill="#8B5E3C"/>
+        <!-- 몸통 (민트) -->
+        <rect x="301" y="22" width="14" height="12" fill="#2E8B7A"/>
+        <!-- 팔 (가는) -->
+        <rect x="298" y="22" width="3"  height="9"  fill="#C8996B"/>
+        <rect x="315" y="22" width="3"  height="9"  fill="#C8996B"/>
+        <!-- 하의 (갈색) -->
+        <rect x="302" y="34" width="5"  height="10" fill="#6D4C41"/>
+        <rect x="309" y="34" width="5"  height="10" fill="#6D4C41"/>
+        <!-- 부츠 -->
+        <rect x="302" y="44" width="5"  height="4"  fill="#3C2410"/>
+        <rect x="309" y="44" width="5"  height="4"  fill="#3C2410"/>
+
+        <!-- 이름표 -->
+        <rect x="294" y="2" width="28" height="4" fill="#000" opacity=".35" rx="1"/>
+        <text x="308" y="5.5" text-anchor="middle" fill="#fff" font-size="3"
+              font-family="monospace" font-weight="bold">Alex</text>
+
+        <!-- ══ 잔디 블록 ══ -->
+        <!-- Steve 아래 -->
+        <rect x="38"  y="48" width="28" height="4"  fill="#5D8A34"/>
+        <rect x="38"  y="52" width="28" height="38" fill="#8B5E3C"/>
+        <rect x="38"  y="52" width="1"  height="38" fill="#7A4E2D"/>
+        <rect x="38"  y="52" width="28" height="1"  fill="#7A4E2D"/>
+
+        <!-- Creeper 아래 -->
+        <rect x="166" y="48" width="28" height="4"  fill="#5D8A34"/>
+        <rect x="166" y="52" width="28" height="38" fill="#8B5E3C"/>
+        <rect x="166" y="52" width="1"  height="38" fill="#7A4E2D"/>
+        <rect x="166" y="52" width="28" height="1"  fill="#7A4E2D"/>
+
+        <!-- Alex 아래 -->
+        <rect x="294" y="48" width="28" height="4"  fill="#5D8A34"/>
+        <rect x="294" y="52" width="28" height="38" fill="#8B5E3C"/>
+        <rect x="294" y="52" width="1"  height="38" fill="#7A4E2D"/>
+        <rect x="294" y="52" width="28" height="1"  fill="#7A4E2D"/>
+
+        <!-- 바닥 잔디 전체 -->
+        <rect x="0" y="76" width="360" height="6"  fill="#5D8A34"/>
+        <rect x="0" y="82" width="360" height="8"  fill="#8B5E3C"/>
+      </svg>
+    </header>
+
+    <!-- ── 메인 카드 ── -->
+    <main class="app-card">
+
+      <div class="card-title-row">
+        <h1 class="app-title">Todo List</h1>
+        <p class="app-subtitle">오늘의 할 일을 관리하세요</p>
+      </div>
+
+      <!-- 입력 영역 -->
+      <div class="input-area">
+        <div class="md-field">
+          <span class="material-icons-round field-icon">edit_note</span>
+          <input type="text" id="todo-input"
+                 placeholder="할 일을 입력하세요..." autocomplete="off" />
+        </div>
+        <div class="input-row2">
+          <select id="priority-select" class="md-select">
+            <option value="high">높음</option>
+            <option value="medium" selected>보통</option>
+            <option value="low">낮음</option>
+          </select>
+          <button id="add-btn" class="md-fab-btn">
+            <span class="material-icons-round">add_task</span>
+            <span>추가</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 필터 섹션 -->
+      <div class="filter-section">
+        <div class="filter-group">
+          <span class="filter-label">상태</span>
+          <div class="filter-btns">
+            <button class="filter-btn active" data-filter="all">전체</button>
+            <button class="filter-btn" data-filter="active">미완료</button>
+            <button class="filter-btn" data-filter="completed">완료</button>
+          </div>
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+          <span class="filter-label">우선순위</span>
+          <div class="filter-btns">
+            <button class="priority-filter-btn active" data-priority="all">전체</button>
+            <button class="priority-filter-btn" data-priority="high">높음</button>
+            <button class="priority-filter-btn" data-priority="medium">보통</button>
+            <button class="priority-filter-btn" data-priority="low">낮음</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 할 일 목록 -->
+      <ul id="todo-list" role="list"></ul>
+
+      <!-- 푸터 -->
+      <div class="app-footer">
+        <span id="remaining-count" class="remaining-txt"></span>
+        <button id="clear-completed-btn" class="text-danger-btn">
+          <span class="material-icons-round">delete_sweep</span>
+          완료 항목 삭제
+        </button>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
