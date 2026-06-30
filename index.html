@@ -167,6 +167,73 @@
       <div class="card-title-row">
         <h1 class="app-title">Todo List</h1>
         <p class="app-subtitle">오늘의 할 일을 관리하세요</p>
+        <div class="help-wrap">
+          <button id="help-btn" class="help-btn" aria-expanded="false" title="드래그 도움말">
+            <span class="material-icons-round">help_outline</span>
+          </button>
+          <div id="help-panel" class="help-panel" hidden>
+            <div class="help-panel-header">
+              <span class="material-icons-round help-panel-icon">menu_book</span>
+              <strong>주요기능 설명</strong>
+              <button id="help-close-btn" class="help-close-btn">
+                <span class="material-icons-round">close</span>
+              </button>
+            </div>
+
+            <div class="help-section-title">
+              <span class="material-icons-round">folder_special</span> 그룹화 기능
+            </div>
+            <ul class="help-list">
+              <li class="help-item">
+                <span class="help-badge new">생성</span>
+                <div class="help-text"><span>항목을 다른 항목 <em>가운데</em>로 드래그</span></div>
+              </li>
+              <li class="help-item">
+                <span class="help-badge add">추가</span>
+                <div class="help-text"><span><em>그룹 헤더 가운데</em>로 드래그</span></div>
+              </li>
+              <li class="help-item">
+                <span class="help-badge move">순서</span>
+                <div class="help-text"><span>항목 <em>위/아래</em>로 드래그</span></div>
+              </li>
+              <li class="help-item">
+                <span class="help-badge out">해제</span>
+                <div class="help-text"><span><em>⊖ 버튼</em> 또는 그룹 밖으로 드래그</span></div>
+              </li>
+              <li class="help-item">
+                <span class="help-badge edit">이름</span>
+                <div class="help-text"><span>그룹 헤더 이름 <em>클릭 후 직접 편집</em></span></div>
+              </li>
+            </ul>
+
+            <div class="help-section-title">
+              <span class="material-icons-round">flag</span> 우선순위 변경
+            </div>
+            <ul class="help-list">
+              <li class="help-item">
+                <span class="help-badge p-high">높음</span>
+                <div class="help-text"><span>크리퍼 🟩 — 긴급·중요 항목</span></div>
+              </li>
+              <li class="help-item">
+                <span class="help-badge p-mid">보통</span>
+                <div class="help-text"><span>스티브 🟫 — 일반 항목 (기본값)</span></div>
+              </li>
+              <li class="help-item">
+                <span class="help-badge p-low">낮음</span>
+                <div class="help-text"><span>돼지 🟥 — 여유있는 항목</span></div>
+              </li>
+              <li class="help-item">
+                <span class="help-badge edit">변경</span>
+                <div class="help-text"><span>항목 우측 <em>셀렉트박스</em>에서 즉시 변경</span></div>
+              </li>
+            </ul>
+
+            <p class="help-tip">
+              <span class="material-icons-round" style="font-size:14px;vertical-align:middle">tips_and_updates</span>
+              핸들(⠿)을 잡고 드래그 · 필터로 우선순위별 보기 가능
+            </p>
+          </div>
+        </div>
       </div>
 
       <!-- 입력 영역 -->

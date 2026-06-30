@@ -595,6 +595,157 @@ ul { list-style: none; }
   .app-card  { padding: var(--sp-6) 40px; }
 }
 
+/* ── 도움말 버튼 & 패널 ── */
+.card-title-row { position: relative; }
+
+.help-wrap {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.help-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--md-on-surface-variant);
+  transition: background .15s, color .15s;
+  cursor: pointer;
+}
+.help-btn:hover,
+.help-btn[aria-expanded="true"] {
+  background: var(--md-primary-container);
+  color: var(--md-primary);
+}
+.help-btn .material-icons-round { font-size: 1.3rem; }
+
+.help-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  background: var(--md-surface);
+  border: 1.5px solid var(--md-outline-variant);
+  border-radius: var(--r-md);
+  box-shadow: var(--el-3);
+  z-index: 300;
+  animation: help-in .15s ease;
+}
+@keyframes help-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.help-panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-3) var(--sp-2);
+  border-bottom: 1px solid var(--md-outline-variant);
+}
+.help-panel-icon {
+  color: var(--md-primary);
+  font-size: 1.1rem;
+}
+.help-panel-header strong {
+  flex: 1;
+  font-size: 0.88rem;
+  color: var(--md-on-surface);
+}
+.help-close-btn {
+  background: none;
+  border: none;
+  color: var(--md-outline);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--r-xs);
+  transition: color .15s, background .15s;
+}
+.help-close-btn:hover { color: var(--md-on-surface); background: var(--md-surface-variant); }
+.help-close-btn .material-icons-round { font-size: 1rem; }
+
+.help-list {
+  list-style: none;
+  padding: var(--sp-2) var(--sp-3) var(--sp-1);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.help-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+}
+.help-badge {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--r-full);
+  margin-top: 2px;
+  white-space: nowrap;
+  letter-spacing: .3px;
+}
+.help-badge.new    { background: #EADDFF; color: #6750A4; }
+.help-badge.add    { background: #C8E6C9; color: #1B5E20; }
+.help-badge.move   { background: #BBDEFB; color: #0D47A1; }
+.help-badge.out    { background: #FFE0B2; color: #7C4E00; }
+.help-badge.edit   { background: #FCE4EC; color: #880E4F; }
+.help-badge.p-high { background: var(--p-high-bg);  color: var(--p-high-color); }
+.help-badge.p-mid  { background: var(--p-mid-bg);   color: var(--p-mid-color);  }
+.help-badge.p-low  { background: var(--p-low-bg);   color: var(--p-low-color);  }
+
+.help-section-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--md-on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  padding: var(--sp-2) var(--sp-3) 2px;
+  border-top: 1px solid var(--md-surface-variant);
+  margin-top: var(--sp-1);
+}
+.help-section-title .material-icons-round { font-size: 0.95rem; color: var(--md-primary); }
+
+.help-text {
+  display: flex;
+  align-items: center;
+}
+.help-text span {
+  font-size: 0.8rem;
+  color: var(--md-on-surface-variant);
+  line-height: 1.4;
+}
+.help-text em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--md-primary);
+}
+
+.help-tip {
+  font-size: 0.75rem;
+  color: var(--md-outline);
+  text-align: center;
+  padding: var(--sp-2) var(--sp-3) var(--sp-3);
+  border-top: 1px solid var(--md-surface-variant);
+  margin-top: var(--sp-1);
+}
+
+/* 모바일에서 패널 너비 조정 */
+@media (max-width: 400px) {
+  .help-panel { width: calc(100vw - 48px); right: -8px; }
+}
+
 /* ── 인증 모달 오버레이 ── */
 .auth-overlay {
   display: none;

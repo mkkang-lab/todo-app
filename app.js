@@ -760,6 +760,27 @@ document.getElementById('clear-completed-btn').addEventListener('click', async (
   await clearCompleted();
 });
 
+// ── 도움말 패널 ──
+(function initHelp() {
+  const btn   = document.getElementById('help-btn');
+  const panel = document.getElementById('help-panel');
+  const closeBtn = document.getElementById('help-close-btn');
+
+  function open()  { panel.hidden = false; btn.setAttribute('aria-expanded', 'true');  }
+  function close() { panel.hidden = true;  btn.setAttribute('aria-expanded', 'false'); }
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    panel.hidden ? open() : close();
+  });
+
+  closeBtn.addEventListener('click', e => { e.stopPropagation(); close(); });
+
+  document.addEventListener('click', e => {
+    if (!panel.hidden && !panel.contains(e.target)) close();
+  });
+})();
+
 // 인증 이벤트
 document.getElementById('signin-btn').addEventListener('click', handleSignIn);
 document.getElementById('signup-btn').addEventListener('click', handleSignUp);
